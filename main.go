@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
 
 type RegexpSlice []regexp.Regexp
@@ -90,11 +91,17 @@ func printHelp() {
 }
 
 func main() {
+	var afterString string
+	var after time.Time
+	var beforeString string
+	var before time.Time
 	var namePatterns RegexpSlice
 	var contentPatterns RegexpSlice
 	var help bool
 	var fileTypes string
 
+	flag.StringVar(&afterString, "a", "", "Show only files after this date (YYYY[MM[DD[ HH[:MM[:SS]]]]])")
+	flag.StringVar(&beforeString, "b", "", "Show only files before this date (YYYY[MM[DD[ HH[:MM[:SS]]]]])")
 	flag.Var(&contentPatterns, "c", "1 or more regular expressions (case-insensitive) to match file contents")
 	flag.BoolVar(&help, "h", false, "Print this help message")
 	flag.Var(&namePatterns, "n", "1 or more regular expressions (case-insensitive) to match file names")
@@ -103,6 +110,22 @@ func main() {
 
 	if help {
 		printHelp()
+	}
+
+	{
+		var e error
+		if "" != afterString {
+			after, e = Parse(afterString)
+			if e != nil {
+				printHelp()
+			}
+		}
+		if "" != beforeString {
+			before, e = Parse(beforeString)
+			if e != nil {
+				printHelp()
+			}
+		}
 	}
 
 	roots := []string{"."}
@@ -119,6 +142,17 @@ func main() {
 
 			if !matchFileType(info, fileTypes) {
 				return nil
+			}
+
+			if "" != afterString {
+				if info.ModTime().Before(after) {
+					return nil
+				}
+			}
+			if "" != beforeString {
+				if info.ModTime().After(before) {
+					return nil
+				}
 			}
 
 			// A special case: If both `RegexpSlice`s are empty, just print out all
