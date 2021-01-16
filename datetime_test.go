@@ -5,8 +5,8 @@ import (
 )
 
 // 2021-01-15 2021 "2020-04-05 16:20:02 PDT"
-func TestParse(t *testing.T) {
-	values := []string {
+func TestParseDateTime(t *testing.T) {
+	values := []string{
 		"2021-01-15",
 		"2021",
 		"2020-04-05 16:20:02 PDT",
@@ -14,7 +14,7 @@ func TestParse(t *testing.T) {
 	}
 
 	for _, v := range values {
-		_, e := Parse(v)
+		_, e := ParseDateTime(v)
 		if e != nil {
 			t.Errorf("%q %v", v, e)
 		}

@@ -84,7 +84,8 @@ func matchFileType(info os.FileInfo, types string) bool {
 
 func printHelp() {
 	fmt.Println("Usage:")
-	fmt.Println("  search [-chn] [pathnames...]")
+	fmt.Println("  search -h")
+	fmt.Println("  search [-c expression] [-n expression] [pathnames...]")
 	fmt.Println("Options:")
 	flag.PrintDefaults()
 	os.Exit(1)
@@ -95,17 +96,23 @@ func main() {
 	var after time.Time
 	var beforeString string
 	var before time.Time
-	var namePatterns RegexpSlice
 	var contentPatterns RegexpSlice
 	var help bool
-	var fileTypes string
+	var namePatterns RegexpSlice
+	//var size int64
+	var types string
 
-	flag.StringVar(&afterString, "a", "", "Show only files after this date (YYYY[MM[DD[ HH[:MM[:SS]]]]])")
-	flag.StringVar(&beforeString, "b", "", "Show only files before this date (YYYY[MM[DD[ HH[:MM[:SS]]]]])")
-	flag.Var(&contentPatterns, "c", "1 or more regular expressions (case-insensitive) to match file contents")
+	flag.StringVar(&afterString, "a", "", "Show only files after this date (YYYY[MM[DD[ HH[:MM[:SS]]]]]).")
+	flag.StringVar(&beforeString, "b", "", "Show only files before this date (YYYY[MM[DD[ HH[:MM[:SS]]]]]).")
+	flag.Var(&contentPatterns, "c",
+		`Regular expression (case-insensitive) to match file contents. This option
+can occur more than once.`)
 	flag.BoolVar(&help, "h", false, "Print this help message")
-	flag.Var(&namePatterns, "n", "1 or more regular expressions (case-insensitive) to match file names")
-	flag.StringVar(&fileTypes, "t", "", "File type: any combination of f (file), d (directory), or both")
+	flag.Var(&namePatterns, "n",
+		`Regular expression (case-insensitive) to match file names. This option
+can occur more than once.`)
+	//flag.StringVar(&size, "s", 0, "File size")
+	flag.StringVar(&types, "t", "", "File type: any combination of f (file), d (directory), or both.")
 	flag.Parse()
 
 	if help {
@@ -115,13 +122,13 @@ func main() {
 	{
 		var e error
 		if "" != afterString {
-			after, e = Parse(afterString)
+			after, e = ParseDateTime(afterString)
 			if e != nil {
 				printHelp()
 			}
 		}
 		if "" != beforeString {
-			before, e = Parse(beforeString)
+			before, e = ParseDateTime(beforeString)
 			if e != nil {
 				printHelp()
 			}
@@ -140,7 +147,7 @@ func main() {
 				return err
 			}
 
-			if !matchFileType(info, fileTypes) {
+			if !matchFileType(info, types) {
 				return nil
 			}
 
