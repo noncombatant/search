@@ -93,13 +93,11 @@ func printHelp() {
 
 func main() {
 	var afterString string
-	var after time.Time
 	var beforeString string
-	var before time.Time
 	var contentPatterns RegexpSlice
 	var help bool
 	var namePatterns RegexpSlice
-	//var size int64
+	var sizeString string
 	var types string
 
 	flag.StringVar(&afterString, "a", "", "Show only files after this date (YYYY[MM[DD[ HH[:MM[:SS]]]]]).")
@@ -111,7 +109,9 @@ can occur more than once.`)
 	flag.Var(&namePatterns, "n",
 		`Regular expression (case-insensitive) to match file names. This option
 can occur more than once.`)
-	//flag.StringVar(&size, "s", 0, "File size")
+	flag.StringVar(&sizeString, "s", "",
+		`Show only files larger than a given size. Size can have a scale factor of
+K, Ki, M, Mi, G, Gi, T, Ti.`)
 	flag.StringVar(&types, "t", "", "File type: any combination of f (file), d (directory), or both.")
 	flag.Parse()
 
@@ -119,17 +119,33 @@ can occur more than once.`)
 		printHelp()
 	}
 
+	var after time.Time
+	var before time.Time
 	{
 		var e error
 		if "" != afterString {
 			after, e = ParseDateTime(afterString)
 			if e != nil {
+				fmt.Fprintln(os.Stderr, e)
 				printHelp()
 			}
 		}
 		if "" != beforeString {
 			before, e = ParseDateTime(beforeString)
 			if e != nil {
+				fmt.Fprintln(os.Stderr, e)
+				printHelp()
+			}
+		}
+	}
+
+	var size int64
+	{
+		if "" != sizeString {
+			var e error
+			size, e = ParseSize(sizeString)
+			if e != nil {
+				fmt.Fprintln(os.Stderr, e)
 				printHelp()
 			}
 		}
@@ -158,6 +174,12 @@ can occur more than once.`)
 			}
 			if "" != beforeString {
 				if info.ModTime().After(before) {
+					return nil
+				}
+			}
+
+			if "" != sizeString {
+				if info.Size() < size {
 					return nil
 				}
 			}
