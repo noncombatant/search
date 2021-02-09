@@ -160,7 +160,7 @@ K, Ki, M, Mi, G, Gi, T, Ti.`)
 		e := filepath.Walk(root, func(pathname string, info os.FileInfo, err error) error {
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
-				return err
+				return nil
 			}
 
 			if !matchFileType(info, types) {
