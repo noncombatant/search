@@ -120,11 +120,11 @@ func main() {
 	flag.StringVar(&beforeString, "b", "", "Show only files before this date (YYYY[MM[DD[ HH[:MM[:SS]]]]]).")
 	flag.Var(&contentPatterns, "c",
 		`Regular expression (case-insensitive) to match file contents. This option
-can occur more than once.`)
+can occur more than once. Use a leading '!' to invert the match.`)
 	flag.BoolVar(&help, "h", false, "Print this help message")
 	flag.Var(&namePatterns, "n",
 		`Regular expression (case-insensitive) to match file names. This option
-can occur more than once.`)
+can occur more than once. Use a leading '!' to invert the match.`)
 	flag.StringVar(&sizeString, "s", "",
 		`Show only files larger than a given size. Size can have a scale factor of
 K, Ki, M, Mi, G, Gi, T, Ti.`)

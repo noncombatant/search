@@ -22,13 +22,21 @@ how I frequently use `search`:
 
 ```
 cd ~/src/some-project
-search -x out/ -n '\.(cc|h)$' -c FrobulateGrommets
+search -n '\.(cc|h)$' -c FrobulateGrommets
 ```
 
-This shows me all uses of the word `FrobulateGrommets` in my C++ project, except
-in the output directory (which typically contains binaries and generated code).
-(It’s important to know precisely **how** and **where** the grommets are being
-frobulated.)
+This prints all uses of the word `FrobulateGrommets` in code files in my C++
+project. (It’s important to know precisely **how** and **where** the grommets
+are being frobulated.)
+
+```
+search -n '!out/' -n '\.(cc|h)$' -c FrobulateGrommets
+```
+
+This is just like the above, except it **excludes** files with names that match
+my project’s output directory, `out/`. The output directory typically contains
+binaries and generated code, so search results would often just be extra noise.
+You can also use the leading `!` with the `-c` option.
 
 ## Building And Installing
 
