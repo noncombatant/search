@@ -22,7 +22,7 @@ how I frequently use `search`:
 
 ```
 cd ~/src/some-project
-search -x out/ -n '\.(cc|h)$' -c FrobulateGrommets -v
+search -x out/ -n '\.(cc|h)$' -c FrobulateGrommets
 ```
 
 This shows me all uses of the word `FrobulateGrommets` in my C++ project, except
