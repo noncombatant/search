@@ -11,25 +11,41 @@ import (
 	"time"
 )
 
-type RegexpSlice []regexp.Regexp
+type Pattern struct {
+	// Whether or not we are trying to match (true) or trying to not-match (false).
+	Affirmative bool
+	Regexp      regexp.Regexp
+}
 
-func (s *RegexpSlice) String() string {
+type Patterns []Pattern
+
+func (s *Patterns) String() string {
 	return "unused"
 }
 
-func (s *RegexpSlice) Set(value string) error {
+func (s *Patterns) Set(value string) error {
+	// If the *very first character* is '!', this is a negative RE. In that
+	// position specifically, '!' is not a Go RE metacharacter. (Whew.) If it's
+	// present, account for it and then remove it.
+	affirmative := true
+	if value[0] == '!' {
+		affirmative = false
+		value = value[1:]
+	}
+
 	// Case-insensitive REs:
 	x, e := regexp.Compile("(?i)" + value)
 	if e != nil {
 		return e
 	}
-	*s = append(*s, *x)
+
+	*s = append(*s, Pattern{affirmative, *x})
 	return nil
 }
 
-func (s *RegexpSlice) MatchContents(pathname string, info os.FileInfo) bool {
-	if len(*s) == 0 {
-		return false
+func (s Patterns) MatchContents(pathname string, info os.FileInfo) bool {
+	if len(s) == 0 {
+		return true
 	}
 
 	file, e := os.Open(pathname)
@@ -45,8 +61,8 @@ func (s *RegexpSlice) MatchContents(pathname string, info os.FileInfo) bool {
 		bytes := scanner.Bytes()
 		// Require all patterns to match:
 		matched := true
-		for _, x := range *s {
-			if !x.Match(bytes) {
+		for _, p := range s {
+			if p.Affirmative != p.Regexp.Match(bytes) {
 				matched = false
 				break
 			}
@@ -59,13 +75,13 @@ func (s *RegexpSlice) MatchContents(pathname string, info os.FileInfo) bool {
 	return r
 }
 
-func (s *RegexpSlice) MatchPathname(pathname string, info os.FileInfo) bool {
-	if len(*s) == 0 {
+func (s Patterns) MatchPathname(pathname string, info os.FileInfo) bool {
+	if len(s) == 0 {
 		return true
 	}
 
-	for _, x := range *s {
-		if x.Match([]byte(pathname)) {
+	for _, p := range s {
+		if p.Affirmative == p.Regexp.Match([]byte(pathname)) {
 			return true
 		}
 	}
@@ -94,9 +110,9 @@ func printHelp() {
 func main() {
 	var afterString string
 	var beforeString string
-	var contentPatterns RegexpSlice
+	var contentPatterns Patterns
 	var help bool
-	var namePatterns RegexpSlice
+	var namePatterns Patterns
 	var sizeString string
 	var types string
 
@@ -182,13 +198,6 @@ K, Ki, M, Mi, G, Gi, T, Ti.`)
 				if info.Size() < size {
 					return nil
 				}
-			}
-
-			// A special case: If both `RegexpSlice`s are empty, just print out all
-			// pathnames unconditionally.
-			if len(namePatterns) == 0 && len(contentPatterns) == 0 {
-				fmt.Println(pathname)
-				return nil
 			}
 
 			if namePatterns.MatchPathname(pathname, info) {
