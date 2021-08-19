@@ -19,11 +19,11 @@ type Pattern struct {
 
 type Patterns []Pattern
 
-func (s *Patterns) String() string {
+func (s Patterns) String() string {
 	return "unused"
 }
 
-func (s *Patterns) Set(value string) error {
+func (ps *Patterns) Set(value string) error {
 	// If the *very first character* is '!', this is a negative RE. In that
 	// position specifically, '!' is not a Go RE metacharacter. (Whew.) If it's
 	// present, account for it and then remove it.
@@ -39,12 +39,12 @@ func (s *Patterns) Set(value string) error {
 		return e
 	}
 
-	*s = append(*s, Pattern{affirmative, *x})
+	*ps = append(*ps, Pattern{affirmative, *x})
 	return nil
 }
 
-func (s Patterns) MatchContents(pathname string, info os.FileInfo) bool {
-	if len(s) == 0 {
+func (ps Patterns) MatchContents(pathname string, info os.FileInfo) bool {
+	if len(ps) == 0 {
 		return true
 	}
 
@@ -61,7 +61,7 @@ func (s Patterns) MatchContents(pathname string, info os.FileInfo) bool {
 		bytes := scanner.Bytes()
 		// Require all patterns to match:
 		matched := true
-		for _, p := range s {
+		for _, p := range ps {
 			if p.Affirmative != p.Regexp.Match(bytes) {
 				matched = false
 				break
@@ -75,12 +75,12 @@ func (s Patterns) MatchContents(pathname string, info os.FileInfo) bool {
 	return r
 }
 
-func (s Patterns) MatchPathname(pathname string, info os.FileInfo) bool {
-	if len(s) == 0 {
+func (ps Patterns) MatchPathname(pathname string, info os.FileInfo) bool {
+	if len(ps) == 0 {
 		return true
 	}
 
-	for _, p := range s {
+	for _, p := range ps {
 		if p.Affirmative == p.Regexp.Match([]byte(pathname)) {
 			return true
 		}
