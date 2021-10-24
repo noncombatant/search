@@ -99,9 +99,12 @@ func matchFileType(info os.FileInfo, types string) bool {
 }
 
 func printHelp() {
+	fmt.Println("Searches for files by name, content, and metadata.")
+	fmt.Println()
 	fmt.Println("Usage:")
 	fmt.Println("  search -h")
-	fmt.Println("  search [-c expression] [-n expression] [pathnames...]")
+	fmt.Println("  search [options ...] [pathnames ...]")
+	fmt.Println()
 	fmt.Println("Options:")
 	flag.PrintDefaults()
 	os.Exit(1)
@@ -116,8 +119,8 @@ func main() {
 	var sizeString string
 	var types string
 
-	flag.StringVar(&afterString, "a", "", "Show only files after this date (YYYY[MM[DD[ HH[:MM[:SS]]]]]).")
-	flag.StringVar(&beforeString, "b", "", "Show only files before this date (YYYY[MM[DD[ HH[:MM[:SS]]]]]).")
+	flag.StringVar(&afterString, "a", "", "Show only files after this date (YYYY[-MM[-DD[ HH[:MM[:SS]]]]]).")
+	flag.StringVar(&beforeString, "b", "", "Show only files before this date (YYYY[-MM[-DD[ HH[:MM[:SS]]]]]).")
 	flag.Var(&contentPatterns, "c",
 		`Regular expression (case-insensitive) to match file contents. This option
 can occur more than once. Use a leading '!' to invert the match.`)
